@@ -1,4 +1,4 @@
-###Algorand Token Launchpad Crowdfunding Smart Contract
+### Algorand Token Launchpad Crowdfunding Smart Contract
 
 This is a PyTeal smart contract for launching a new token on the Algorand blockchain through crowdfunding. The smart contract allows users to contribute Algos to a crowdfunding campaign and receive the new token in exchange based on the current token price.
 
