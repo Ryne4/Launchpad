@@ -1,0 +1,80 @@
+import { Injectable } from '@nestjs/common';
+import { Algodv2 } from 'algosdk';
+import { compileTeal } from './compileTeal';
+
+@Injectable()
+export class TokenLaunchpadService {
+  private readonly algodClient: Algodv2;
+
+  constructor() {
+    // Initialize the Algod client with your Algorand node API details
+    this.algodClient = new Algodv2({
+      token: '<your-algod-api-token>',
+      baseServer: 'https://<your-algod-node-api-url>',
+      port: <your-algod-node-api-port>,
+    });
+  }
+
+  async launchToken(
+    tokenName: string,
+    tokenSymbol: string,
+    tokenDecimals: number,
+    crowdfundStart: number,
+    crowdfundEnd: number,
+    crowdfundGoal: number,
+    crowdfundAddress: string,
+    tokenAmount: number,
+    tokenPrice: number,
+  ): Promise<string> {
+    // Compile the PyTeal smart contract to TEAL bytecode
+    const tealCode = compileTeal(
+      tokenName,
+      tokenSymbol,
+      tokenDecimals,
+      crowdfundStart,
+      crowdfundEnd,
+      crowdfundGoal,
+      crowdfundAddress,
+      tokenAmount,
+      tokenPrice,
+    );
+
+    // Get the suggested transaction parameters from the Algorand node
+    const suggestedParams = await this.algodClient.getTransactionParams().do();
+
+    // Create a new Algorand transaction with the TEAL program as the logic signature
+    const txn = {
+      from: '<your-algorand-wallet-address>',
+      to: '',
+      fee: suggestedParams.fee,
+      amount: 0,
+      firstRound: suggestedParams.firstRound,
+      lastRound: suggestedParams.lastRound + 1000,
+      note: new Uint8Array(Buffer.from('crowdfund')),
+      genesisID: suggestedParams.genesisID,
+      genesisHash: suggestedParams.genesishashb64,
+      closeRemainderTo: '',
+      type: 'appl',
+      appArgs: [
+        new Uint8Array(Buffer.from(crowdfundStart.toString())),
+        new Uint8Array(Buffer.from(crowdfundEnd.toString())),
+      ],
+      appAccounts: [crowdfundAddress],
+      appOnComplete: 4,
+      appLocalInts: 0,
+      appLocalByteSlices: 0,
+      appForeignApps: [],
+      appForeignAssets: [],
+      appApprovalProgram: tealCode,
+      appClearProgram: undefined,
+      appGlobalInts: 0,
+      appGlobalByteSlices: 0,
+    };
+
+    // Sign and submit the transaction to the Algorand node
+    const signedTxn = txn.signTxn('<your-algorand-wallet-private-key>');
+    const txId = await this.algodClient.sendRawTransaction(signedTxn).do();
+
+    return txId;
+  }
+}
