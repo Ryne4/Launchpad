@@ -30,6 +30,7 @@ Sign and submit the transaction to the Algorand blockchain.
 If the crowdfunding is ongoing and the investment amount is within the allowed range, the smart contract will transfer the investment amount to the crowdfunding address and issue the tokens to the investor.
 Check your Algorand wallet balance to see the newly issued tokens.
 
+
 token_name: The name of the new token that will be launched.
 token_symbol: The ticker symbol of the new token.
 token_decimals: The number of decimal places that the new token will have.
