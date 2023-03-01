@@ -2,7 +2,7 @@
 
 This is a PyTeal smart contract for launching a new token on the Algorand blockchain through crowdfunding. The smart contract allows users to contribute Algos to a crowdfunding campaign and receive the new token in exchange based on the current token price.
 
-##Installation and Usage
+## Installation and Usage
 
 To use this smart contract, you will need:
 
@@ -15,7 +15,7 @@ Compile the crowdfund.teal file into a TEAL program using the PyTeal compiler: p
 Deploy the crowdfund.tealc program to the Algorand blockchain using your Algorand wallet or a third-party deployment tool such as GoalSeeker.
 Note down the smart contract address and use it to interact with the smart contract.
 
-##To participate in the crowdfunding:
+## To participate in the crowdfunding:
 
 Transfer Algos to your Algorand wallet.
 Create a new transaction with the following details:
