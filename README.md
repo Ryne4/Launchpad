@@ -6,7 +6,7 @@ This is a PyTeal smart contract for launching a new token on the Algorand blockc
 
 To use this smart contract, you will need:
 
-An Algorand wallet that supports interacting with smart contracts, such as the Algorand Wallet or MyAlgo Wallet.
+An Algorand wallet that supports interacting with smart contracts, such as the Pera Wallet or MyAlgo Wallet.
 The PyTeal compiler and SDK installed on your local machine, which can be installed using pip install pyteal.
 To deploy the smart contract:
 
