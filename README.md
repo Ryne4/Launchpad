@@ -29,3 +29,15 @@ Second argument: The crowdfunding end date (in Unix timestamp format).
 Sign and submit the transaction to the Algorand blockchain.
 If the crowdfunding is ongoing and the investment amount is within the allowed range, the smart contract will transfer the investment amount to the crowdfunding address and issue the tokens to the investor.
 Check your Algorand wallet balance to see the newly issued tokens.
+
+token_name: The name of the new token that will be launched.
+token_symbol: The ticker symbol of the new token.
+token_decimals: The number of decimal places that the new token will have.
+crowdfund_start: The start date and time of the crowdfunding campaign, in Unix timestamp format.
+crowdfund_end: The end date and time of the crowdfunding campaign, in Unix timestamp format.
+crowdfund_goal: The fundraising goal in Algos that must be reached for the crowdfunding campaign to be successful.
+crowdfund_address: The Algorand wallet address where the Algos raised during the crowdfunding campaign will be transferred to.
+token_amount: The total number of new tokens that will be launched.
+token_price: The initial price of the new token in Algos.
+
+These values can be updated before the smart contract is deployed to the Algorand blockchain, but cannot be changed once the smart contract is live. Therefore, it's important to carefully consider these values and ensure they are accurate before deploying the smart contract.
