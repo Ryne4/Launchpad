@@ -1,0 +1,85 @@
+# Import necessary libraries
+from pyteal import *
+
+# Define smart contract parameters
+owner_address = Addr("OWNER_ADDRESS")
+crowdfunding_address = Addr("CROWDFUNDING_ADDRESS")
+token_name = "TOKEN_NAME"
+token_symbol = "TOKEN_SYMBOL"
+total_supply = 1000000
+token_decimal = 2
+token_price = 1000
+min_investment = 10000
+max_investment = 100000
+
+# Define state variables
+token_id = Int(0)
+crowdfunding_start = Int(0)
+crowdfunding_end = Int(0)
+total_fund = Int(0)
+
+# Define the smart contract
+def crowdfunding_contract():
+
+    # Check if the transaction sender is the owner
+    is_owner = Txn.sender() == owner_address
+    
+    # Define the initialization function
+    on_initialize = Seq([
+        Assert(is_owner),
+        
+        # Create the token
+        App.localPut(Int(0), Bytes("token_name"), Bytes(token_name)),
+        App.localPut(Int(0), Bytes("token_symbol"), Bytes(token_symbol)),
+        App.localPut(Int(0), Bytes("total_supply"), Int(total_supply)),
+        App.localPut(Int(0), Bytes("token_decimal"), Int(token_decimal)),
+        token_id.store(App.id()),
+        
+        # Set the crowdfunding start and end dates
+        crowdfunding_start.store(Txn.application_args[0]),
+        crowdfunding_end.store(Txn.application_args[1]),
+        
+        # Initialize total fund to 0
+        total_fund.store(Int(0)),
+        
+        Return(Int(1))
+    ])
+    
+    # Define the crowdfunding function
+    on_crowdfund = Seq([
+        Assert(Txn.application_args.length() == 2),
+        
+        # Check if the crowdfunding is ongoing
+        Assert(Txn.application_args[0] >= crowdfunding_start),
+        Assert(Txn.application_args[0] <= crowdfunding_end),
+        
+        # Check if the investment amount is within the allowed range
+        investment_amount = Btoi(Txn.application_args[1]),
+        Assert(investment_amount >= min_investment),
+        Assert(investment_amount <= max_investment),
+        
+        # Transfer the investment amount to the crowdfunding address
+        fund_transfer = Seq([
+            App.localPut(Int(0), Bytes("total_fund"), total_fund + investment_amount),
+            Assert(Gtxn[0].receiver() == crowdfunding_address),
+            Assert(Gtxn[0].amount() == investment_amount),
+            Return(Int(1))
+        ]),
+        
+        # Issue the tokens to the investor
+        token_issue = Seq([
+            Assert(Gtxn[1].sender() == crowdfunding_address),
+            Assert(Gtxn[1].application_id() == token_id),
+            Assert(Gtxn[1].asset_amount() == (investment_amount * token_price)),
+            Return(Int(1))
+        ]),
+        
+        If(Gtxn[0].sender() == crowdfunding_address, fund_transfer),
+        If(Gtxn[1].receiver() == Txn.sender(), token_issue)
+    ])
+    
+    return Cond(
+        [Txn.application_id() == Int(0), on_initialize],
+        [Txn.on_completion() == OnComplete.NoOp, Return(Int(1))],
+        [Txn.application_args[0] == Bytes("crowdfund"), on_crowdfund],
+    )
