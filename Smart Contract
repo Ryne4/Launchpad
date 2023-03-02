@@ -11,6 +11,7 @@ token_decimal = 2
 token_price = 1000
 min_investment = 10000
 max_investment = 100000
+platform_wallet = Addr("PLATFORM_WALLET")
 
 # Define state variables
 token_id = Int(0)
@@ -58,11 +59,17 @@ def crowdfunding_contract():
         Assert(investment_amount >= min_investment),
         Assert(investment_amount <= max_investment),
         
+        # Calculate platform fee
+        platform_fee = investment_amount * 5 / 100,
+        
+        # Calculate investment amount after platform fee
+        investment_after_fee = investment_amount - platform_fee,
+        
         # Transfer the investment amount to the crowdfunding address
         fund_transfer = Seq([
-            App.localPut(Int(0), Bytes("total_fund"), total_fund + investment_amount),
+            App.localPut(Int(0), Bytes("total_fund"), total_fund + investment_after_fee),
             Assert(Gtxn[0].receiver() == crowdfunding_address),
-            Assert(Gtxn[0].amount() == investment_amount),
+            Assert(Gtxn[0].amount() == investment_after_fee),
             Return(Int(1))
         ]),
         
@@ -74,12 +81,17 @@ def crowdfunding_contract():
             Return(Int(1))
         ]),
         
+        # Transfer platform fee to the platform wallet
+        fee_transfer = Seq([
+            Assert(Gtxn[2].receiver() == platform_wallet),
+            Assert(Gtxn[2].amount() == platform_fee),
+            Return(Int(1))
+        ]),
+        
         If(Gtxn[0].sender() == crowdfunding_address, fund_transfer),
-        If(Gtxn[1].receiver() == Txn.sender(), token_issue)
+        If(Gtxn[1].receiver() == Txn.sender(), token_issue),
+        If(Gtxn[2].sender() == crowdfunding_address, fee_transfer)
     ])
     
     return Cond(
-        [Txn.application_id() == Int(0), on_initialize],
-        [Txn.on_completion() == OnComplete.NoOp, Return(Int(1))],
-        [Txn.application_args[0] == Bytes("crowdfund"), on_crowdfund],
-    )
+        [Txn.application_id() == Int(0), on
